@@ -246,7 +246,7 @@ const defaultFormData = {
 
       {message && <div className={`px-4 py-3 rounded-lg text-sm ${message.startsWith('Error') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>{message}</div>}
 
-      <Section title="Branch & Audit Details">
+           <Section title="Branch & Audit Details">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium mb-1">Branch *</label>
@@ -259,13 +259,86 @@ const defaultFormData = {
             <label className="block text-sm font-medium mb-1">Audit Date</label>
             <input type="date" value={auditDate} onChange={(e) => setAuditDate(e.target.value)} disabled={isReadOnly} className="w-full border rounded-lg px-3 py-2.5" />
           </div>
+
+          {/* Branch-level person (report submitted to) */}
           <div>
-            <label className="block text-sm font-medium mb-1">ABM Name</label>
-            <input value={formData.abm_name} onChange={(e) => updateField('abm_name', e.target.value)} disabled={isReadOnly} className="w-full border rounded-lg px-3 py-2.5" />
+            <label className="block text-sm font-medium mb-1">Branch Contact Designation</label>
+            <select
+              value={formData.branch_contact_designation || ''}
+              onChange={(e) => updateField('branch_contact_designation', e.target.value)}
+              disabled={isReadOnly}
+              className="w-full border rounded-lg px-3 py-2.5"
+            >
+              <option value="">Select Designation</option>
+              <option value="Branch Manager">Branch Manager</option>
+              <option value="Chief Branch Manager">Chief Branch Manager</option>
+              <option value="ABM">ABM</option>
+              <option value="Customer Relation Executive">Customer Relation Executive</option>
+            </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Area Manager</label>
-            <input value={formData.area_manager_name} onChange={(e) => updateField('area_manager_name', e.target.value)} disabled={isReadOnly} className="w-full border rounded-lg px-3 py-2.5" />
+            <label className="block text-sm font-medium mb-1">Branch Contact Name</label>
+            <input
+              value={formData.branch_contact_name || formData.abm_name || ''}
+              onChange={(e) => {
+                updateField('branch_contact_name', e.target.value);
+                updateField('abm_name', e.target.value);
+              }}
+              disabled={isReadOnly}
+              className="w-full border rounded-lg px-3 py-2.5"
+              placeholder="Type name manually"
+            />
+          </div>
+
+          {/* Higher authority */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Higher Authority Designation</label>
+            <select
+              value={formData.higher_authority_designation || ''}
+              onChange={(e) => updateField('higher_authority_designation', e.target.value)}
+              disabled={isReadOnly}
+              className="w-full border rounded-lg px-3 py-2.5"
+            >
+              <option value="">Select Designation</option>
+              <option value="Area Manager">Area Manager</option>
+              <option value="Regional Manager">Regional Manager</option>
+              <option value="Sales Head">Sales Head</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Higher Authority Name</label>
+            <input
+              value={formData.higher_authority_name || formData.area_manager_name || ''}
+              onChange={(e) => {
+                updateField('higher_authority_name', e.target.value);
+                updateField('area_manager_name', e.target.value);
+              }}
+              disabled={isReadOnly}
+              className="w-full border rounded-lg px-3 py-2.5"
+              placeholder="Type name manually"
+            />
+          </div>
+
+          {/* Period & Verification */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Audit Period From</label>
+            <input type="date" value={formData.period_covered_from || ''} onChange={(e) => updateField('period_covered_from', e.target.value)} disabled={isReadOnly} className="w-full border rounded-lg px-3 py-2.5" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Audit Period To</label>
+            <input type="date" value={formData.period_covered_to || ''} onChange={(e) => updateField('period_covered_to', e.target.value)} disabled={isReadOnly} className="w-full border rounded-lg px-3 py-2.5" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Verification From</label>
+            <input type="date" value={formData.verification_from || ''} onChange={(e) => onVerificationChange('verification_from', e.target.value)} disabled={isReadOnly} className="w-full border rounded-lg px-3 py-2.5" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Verification To</label>
+            <input type="date" value={formData.verification_to || ''} onChange={(e) => onVerificationChange('verification_to', e.target.value)} disabled={isReadOnly} className="w-full border rounded-lg px-3 py-2.5" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Days Taken for Audit</label>
+            <input type="text" value={formData.man_days_taken || ''} readOnly className="w-full border rounded-lg px-3 py-2.5 bg-gray-50" placeholder="Auto calculated" />
           </div>
         </div>
       </Section>
