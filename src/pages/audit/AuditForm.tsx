@@ -4,9 +4,16 @@ import { databases, DATABASE_ID, COLLECTIONS, ID } from '../../lib/appwrite';
 import { useAuth } from '../../context/AuthContext';
 import { Save, Send, ArrowLeft, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 
-function YesNoNA({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+const DESIGNATIONS = [
+  'Customer Relation Executive',
+  'Assistant Manager',
+  'Branch Manager',
+  'Chief Branch Manager',
+];
+
+function YesNoNA({ value, onChange, disabled }: { value: string; onChange: (v: string) => void; disabled?: boolean }) {
   return (
-    <select value={value || ''} onChange={(e) => onChange(e.target.value)} className="border rounded-md px-2 py-1.5 text-sm min-w-[90px]">
+    <select value={value || ''} onChange={(e) => onChange(e.target.value)} disabled={disabled} className="border rounded-md px-2 py-1.5 text-sm min-w-[90px]">
       <option value="">—</option>
       <option value="Yes">Yes</option>
       <option value="No">No</option>
@@ -27,6 +34,15 @@ function Section({ title, children, defaultOpen = true }: { title: string; child
     </div>
   );
 }
+
+const defaultRegisters = [
+  'Muster roll Register', 'Cash Book', 'Key Register/Key movement Register', 'Official Visitors Register',
+  'Staff Movement Register', 'Assets Register', 'Safe Cash Movement Register', 'Stamp Register',
+  'Security Register/ Gold loan movement Register', 'KYC Register And KYC File', 'Denomination Register',
+  'Branch Inspection and Audit File', 'Bank-reconciliation File', 'Cheque Utilization Register',
+  'Cash in Transit Register', 'Daily transaction summary', 'Complaints Register', 'Circular File',
+  'GL Security Cover register', 'Overdue followup register',
+].map((name, i) => ({ s_no: i + 1, name, irregularities: '', remarks: '' }));
 
 const defaultFormData = {
   abm_name: '', area_manager_name: '', period_covered_from: '', period_covered_to: '',
@@ -54,14 +70,7 @@ const defaultFormData = {
     { q: 'd) Whether joint custody operations followed properly?', a: '', remarks: '' },
     { q: 'e) Any previous irregularities pending?', a: '', remarks: '' },
   ],
-  registers: [
-    'Muster roll Register', 'Cash Book', 'Key Register/Key movement Register', 'Official Visitors Register',
-    'Staff Movement Register', 'Assets Register', 'Safe Cash Movement Register', 'Stamp Register',
-    'Security Register/ Gold loan movement Register', 'KYC Register And KYC File', 'Denomination Register',
-    'Branch Inspection and Audit File', 'Bank-reconciliation File', 'Cheque Utilization Register',
-    'Cash in Transit Register', 'Daily transaction summary', 'Complaints Register', 'Circular File',
-    'GL Security Cover register', 'Overdue followup register',
-  ].map((name, i) => ({ s_no: i + 1, name, irregularities: '', remarks: '' })),
+  registers: defaultRegisters,
   general_points: [
     { q: '1. Whether all Tube lights & Timer in glow sign board is working?', a: '', remarks: '' },
     { q: '2. Whether the Direction boards are fixed outside the premises?', a: '', remarks: '' },
@@ -85,9 +94,7 @@ const defaultFormData = {
     documentation: { max: 10, achieved: 0 },
     premises: { max: 5, achieved: 0 },
   },
-};
-
-export default function AuditForm() {
+};export default function AuditForm() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const programId = searchParams.get('program');
@@ -121,8 +128,9 @@ export default function AuditForm() {
       const doc = await databases.getDocument(DATABASE_ID, COLLECTIONS.audit_reports, reportId);
       setBranchId(doc.branch_id);
       setAuditDate(doc.audit_date || '');
-      setFormData({ ...defaultFormData, ...(typeof doc.form_data === 'string' ? JSON.parse(doc.form_data) : doc.form_data || {}) });
-      setStatus(doc.status === 'submitted' ? 'submitted' : 'draft');
+      const parsed = typeof doc.form_data === 'string' ? JSON.parse(doc.form_data) : (doc.form_data || {});
+      setFormData({ ...defaultFormData, ...parsed });
+      setStatus(doc.status === 'submitted' || doc.status === 'branch_replied' || doc.status === 'closed' ? 'submitted' : 'draft');
     } catch (err) { console.error(err); }
     setLoading(false);
   };
@@ -158,6 +166,22 @@ export default function AuditForm() {
       ...prev,
       staff: prev.staff.filter((_: any, i: number) => i !== index),
     }));
+  };
+
+  const addRegister = () => {
+    setFormData((prev: any) => {
+      const list = [...(prev.registers || [])];
+      list.push({ s_no: list.length + 1, name: '', irregularities: '', remarks: '' });
+      return { ...prev, registers: list };
+    });
+  };
+
+  const removeRegister = (index: number) => {
+    setFormData((prev: any) => {
+      const list = prev.registers.filter((_: any, i: number) => i !== index)
+        .map((r: any, i: number) => ({ ...r, s_no: i + 1 }));
+      return { ...prev, registers: list };
+    });
   };
 
   const saveReport = async (submit = false) => {
@@ -249,21 +273,40 @@ export default function AuditForm() {
       <Section title="Staff Details">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50"><tr><th className="text-left px-3 py-2">Name</th><th className="text-left px-3 py-2">Emp Code</th><th className="text-left px-3 py-2">Designation</th><th className="text-left px-3 py-2">Remarks</th>{!isReadOnly && <th></th>}</tr></thead>
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="text-left px-3 py-2">Name</th>
+                <th className="text-left px-3 py-2">Emp Code</th>
+                <th className="text-left px-3 py-2">Designation</th>
+                <th className="text-left px-3 py-2">Remarks</th>
+                {!isReadOnly && <th></th>}
+              </tr>
+            </thead>
             <tbody>
               {(formData.staff || []).map((s: any, i: number) => (
                 <tr key={i} className="border-t">
                   <td className="px-2 py-1.5"><input value={s.name} onChange={(e) => updateArrayItem('staff', i, 'name', e.target.value)} disabled={isReadOnly} className="w-full border rounded px-2 py-1" /></td>
                   <td className="px-2 py-1.5"><input value={s.employee_code} onChange={(e) => updateArrayItem('staff', i, 'employee_code', e.target.value)} disabled={isReadOnly} className="w-full border rounded px-2 py-1" /></td>
-                  <td className="px-2 py-1.5"><input value={s.designation} onChange={(e) => updateArrayItem('staff', i, 'designation', e.target.value)} disabled={isReadOnly} className="w-full border rounded px-2 py-1" /></td>
+                  <td className="px-2 py-1.5">
+                    <select value={s.designation || ''} onChange={(e) => updateArrayItem('staff', i, 'designation', e.target.value)} disabled={isReadOnly} className="w-full border rounded px-2 py-1">
+                      <option value="">Select</option>
+                      {DESIGNATIONS.map((d) => <option key={d} value={d}>{d}</option>)}
+                    </select>
+                  </td>
                   <td className="px-2 py-1.5"><input value={s.remarks} onChange={(e) => updateArrayItem('staff', i, 'remarks', e.target.value)} disabled={isReadOnly} className="w-full border rounded px-2 py-1" /></td>
-                  {!isReadOnly && <td><button onClick={() => removeStaff(i)} className="text-red-500 p-1"><Trash2 className="w-4 h-4" /></button></td>}
+                  {!isReadOnly && (
+                    <td><button type="button" onClick={() => removeStaff(i)} className="text-red-500 p-1"><Trash2 className="w-4 h-4" /></button></td>
+                  )}
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        {!isReadOnly && <button onClick={addStaff} className="mt-2 text-sm text-blue-600 flex items-center gap-1"><Plus className="w-4 h-4" /> Add Staff</button>}
+        {!isReadOnly && (
+          <button type="button" onClick={addStaff} className="mt-2 text-sm text-blue-600 flex items-center gap-1">
+            <Plus className="w-4 h-4" /> Add Staff
+          </button>
+        )}
       </Section>
 
       <Section title="Cash Verification">
@@ -275,7 +318,7 @@ export default function AuditForm() {
           {(formData.cash_questions || []).map((item: any, i: number) => (
             <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-2 border-b pb-3">
               <div className="flex-1 text-sm">{item.q}</div>
-              <YesNoNA value={item.a} onChange={(v) => updateArrayItem('cash_questions', i, 'a', v)} />
+              <YesNoNA value={item.a} onChange={(v) => updateArrayItem('cash_questions', i, 'a', v)} disabled={isReadOnly} />
               <input placeholder="Remarks" value={item.remarks} onChange={(e) => updateArrayItem('cash_questions', i, 'remarks', e.target.value)} disabled={isReadOnly} className="border rounded-md px-2 py-1.5 text-sm flex-1" />
             </div>
           ))}
@@ -287,7 +330,7 @@ export default function AuditForm() {
           {(formData.bank_questions || []).map((item: any, i: number) => (
             <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-2 border-b pb-3">
               <div className="flex-1 text-sm">{item.q}</div>
-              <YesNoNA value={item.a} onChange={(v) => updateArrayItem('bank_questions', i, 'a', v)} />
+              <YesNoNA value={item.a} onChange={(v) => updateArrayItem('bank_questions', i, 'a', v)} disabled={isReadOnly} />
               <input placeholder="Remarks" value={item.remarks} onChange={(e) => updateArrayItem('bank_questions', i, 'remarks', e.target.value)} disabled={isReadOnly} className="border rounded-md px-2 py-1.5 text-sm flex-1" />
             </div>
           ))}
@@ -299,7 +342,7 @@ export default function AuditForm() {
           {(formData.safe_questions || []).map((item: any, i: number) => (
             <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-2 border-b pb-3">
               <div className="flex-1 text-sm">{item.q}</div>
-              <YesNoNA value={item.a} onChange={(v) => updateArrayItem('safe_questions', i, 'a', v)} />
+              <YesNoNA value={item.a} onChange={(v) => updateArrayItem('safe_questions', i, 'a', v)} disabled={isReadOnly} />
               <input placeholder="Remarks" value={item.remarks} onChange={(e) => updateArrayItem('safe_questions', i, 'remarks', e.target.value)} disabled={isReadOnly} className="border rounded-md px-2 py-1.5 text-sm flex-1" />
             </div>
           ))}
@@ -309,19 +352,41 @@ export default function AuditForm() {
       <Section title="Maintenance of Registers / Files" defaultOpen={false}>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50"><tr><th className="text-left px-2 py-2 w-10">#</th><th className="text-left px-2 py-2">Register / File</th><th className="text-left px-2 py-2">Irregularities</th><th className="text-left px-2 py-2">Remarks</th></tr></thead>
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="text-left px-2 py-2 w-10">#</th>
+                <th className="text-left px-2 py-2">Register / File</th>
+                <th className="text-left px-2 py-2">Irregularities</th>
+                <th className="text-left px-2 py-2">Remarks</th>
+                {!isReadOnly && <th className="w-10"></th>}
+              </tr>
+            </thead>
             <tbody>
               {(formData.registers || []).map((r: any, i: number) => (
                 <tr key={i} className="border-t">
                   <td className="px-2 py-1.5 text-gray-400">{r.s_no}</td>
-                  <td className="px-2 py-1.5 font-medium">{r.name}</td>
-                  <td className="px-2 py-1.5"><input value={r.irregularities} onChange={(e) => updateArrayItem('registers', i, 'irregularities', e.target.value)} disabled={isReadOnly} className="w-full border rounded px-2 py-1" /></td>
-                  <td className="px-2 py-1.5"><input value={r.remarks} onChange={(e) => updateArrayItem('registers', i, 'remarks', e.target.value)} disabled={isReadOnly} className="w-full border rounded px-2 py-1" /></td>
+                  <td className="px-2 py-1.5">
+                    <input value={r.name} onChange={(e) => updateArrayItem('registers', i, 'name', e.target.value)} disabled={isReadOnly} className="w-full border rounded px-2 py-1 font-medium" placeholder="Register name" />
+                  </td>
+                  <td className="px-2 py-1.5">
+                    <input value={r.irregularities} onChange={(e) => updateArrayItem('registers', i, 'irregularities', e.target.value)} disabled={isReadOnly} className="w-full border rounded px-2 py-1" />
+                  </td>
+                  <td className="px-2 py-1.5">
+                    <input value={r.remarks} onChange={(e) => updateArrayItem('registers', i, 'remarks', e.target.value)} disabled={isReadOnly} className="w-full border rounded px-2 py-1" />
+                  </td>
+                  {!isReadOnly && (
+                    <td><button type="button" onClick={() => removeRegister(i)} className="text-red-500 p-1"><Trash2 className="w-4 h-4" /></button></td>
+                  )}
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+        {!isReadOnly && (
+          <button type="button" onClick={addRegister} className="mt-2 text-sm text-blue-600 flex items-center gap-1">
+            <Plus className="w-4 h-4" /> Add Register / File
+          </button>
+        )}
       </Section>
 
       <Section title="General Points" defaultOpen={false}>
@@ -329,7 +394,7 @@ export default function AuditForm() {
           {(formData.general_points || []).map((item: any, i: number) => (
             <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-2 border-b pb-3">
               <div className="flex-1 text-sm">{item.q}</div>
-              <YesNoNA value={item.a} onChange={(v) => updateArrayItem('general_points', i, 'a', v)} />
+              <YesNoNA value={item.a} onChange={(v) => updateArrayItem('general_points', i, 'a', v)} disabled={isReadOnly} />
               <input placeholder="Remarks" value={item.remarks} onChange={(e) => updateArrayItem('general_points', i, 'remarks', e.target.value)} disabled={isReadOnly} className="border rounded-md px-2 py-1.5 text-sm flex-1" />
             </div>
           ))}
