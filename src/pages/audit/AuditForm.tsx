@@ -115,13 +115,31 @@ const defaultFormData = {
     if (id) loadReport(id);
   }, [id]);
 
-  const loadBranches = async () => {
+    const loadBranches = async () => {
     try {
       const res = await databases.listDocuments(DATABASE_ID, COLLECTIONS.branches);
       setBranches(res.documents.map((d: any) => ({ id: d.$id, branch_code: d.branch_code, branch_name: d.branch_name })));
     } catch (err) { console.error(err); }
   };
 
+  const calcManDays = (from: string, to: string) => {
+    if (!from || !to) return '';
+    const d1 = new Date(from);
+    const d2 = new Date(to);
+    if (isNaN(d1.getTime()) || isNaN(d2.getTime()) || d2 < d1) return '';
+    const days = Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    return String(days);
+  };
+
+  const onVerificationChange = (field: 'verification_from' | 'verification_to', value: string) => {
+    setFormData((prev: any) => {
+      const next = { ...prev, [field]: value };
+      const from = field === 'verification_from' ? value : prev.verification_from;
+      const to = field === 'verification_to' ? value : prev.verification_to;
+      next.man_days_taken = calcManDays(from, to);
+      return next;
+    });
+  };
   const loadReport = async (reportId: string) => {
     setLoading(true);
     try {
