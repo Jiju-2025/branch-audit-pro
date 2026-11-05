@@ -45,7 +45,7 @@ const defaultRegisters = [
 ].map((name, i) => ({ s_no: i + 1, name, irregularities: '', remarks: '' }));
 
 const defaultFormData = {
-  bm_name: '', area_manager_name: '', period_covered_from: '', period_covered_to: '',
+  abm_name: '', area_manager_name: '', period_covered_from: '', period_covered_to: '',
   staff: [] as any[],
   cash_physical: '', cash_system: '',
   cash_questions: [
