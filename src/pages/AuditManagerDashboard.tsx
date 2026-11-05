@@ -9,6 +9,7 @@ import {
   FileText,
   CheckCircle2,
   Clock,
+  Eye,
 } from 'lucide-react';
 
 export default function AuditManagerDashboard() {
@@ -46,11 +47,14 @@ export default function AuditManagerDashboard() {
           .sort((a: any, b: any) => (b.planned_date || '').localeCompare(a.planned_date || ''))
       );
       setReports(
-        repRes.documents.map((r: any) => ({
-          ...r,
-          id: r.$id,
-          branch: branchMap[r.branch_id],
-        }))
+        repRes.documents
+          .map((r: any) => ({
+            ...r,
+            id: r.$id,
+            branch: branchMap[r.branch_id],
+            auditor: profileMap[r.auditor_id],
+          }))
+          .sort((a: any, b: any) => (b.$updatedAt || '').localeCompare(a.$updatedAt || ''))
       );
     } catch (err) {
       console.error(err);
@@ -63,7 +67,7 @@ export default function AuditManagerDashboard() {
   const inProgress = programs.filter((p) => p.status === 'in_progress').length;
   const completed = programs.filter((p) => p.status === 'completed').length;
   const drafts = reports.filter((r) => r.status === 'draft').length;
-  const submitted = reports.filter((r) => r.status === 'submitted').length;
+  const submitted = reports.filter((r) => r.status === 'submitted' || r.status === 'branch_replied').length;
 
   if (loading) {
     return (
@@ -97,6 +101,63 @@ export default function AuditManagerDashboard() {
         <StatCard label="Submitted" value={submitted} icon={Users} color="text-blue-600" />
       </div>
 
+      {/* Submitted Reports */}
+      <div className="bg-white rounded-xl border shadow-sm">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b">
+          <h2 className="font-semibold text-gray-800 flex items-center gap-2">
+            <FileText className="w-4 h-4" /> Submitted / Branch Replied Reports
+          </h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 text-gray-500">
+              <tr>
+                <th className="text-left px-5 py-3 font-medium">Branch</th>
+                <th className="text-left px-5 py-3 font-medium">Auditor</th>
+                <th className="text-left px-5 py-3 font-medium">Audit Date</th>
+                <th className="text-left px-5 py-3 font-medium">Status</th>
+                <th className="text-left px-5 py-3 font-medium">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reports
+                .filter((r) => r.status === 'submitted' || r.status === 'branch_replied' || r.status === 'closed')
+                .map((r) => (
+                  <tr key={r.id} className="border-t hover:bg-gray-50">
+                    <td className="px-5 py-3 font-medium">
+                      {r.branch?.branch_name}
+                      <span className="text-xs text-gray-400 ml-1">({r.branch?.branch_code})</span>
+                    </td>
+                    <td className="px-5 py-3">{r.auditor?.full_name || '-'}</td>
+                    <td className="px-5 py-3">{formatDate(r.audit_date)}</td>
+                    <td className="px-5 py-3">
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[r.status] || 'bg-gray-100'}`}>
+                        {r.status?.replace('_', ' ')}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3">
+                      <Link
+                        to={`/my-audits/${r.id}`}
+                        className="inline-flex items-center gap-1 text-blue-600 hover:underline text-sm"
+                      >
+                        <Eye className="w-4 h-4" /> Open
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              {reports.filter((r) => r.status === 'submitted' || r.status === 'branch_replied' || r.status === 'closed').length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-5 py-8 text-center text-gray-400">
+                    No submitted reports yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Recent Programs */}
       <div className="bg-white rounded-xl border shadow-sm">
         <div className="flex items-center justify-between px-5 py-3.5 border-b">
           <h2 className="font-semibold text-gray-800 flex items-center gap-2">
@@ -119,9 +180,7 @@ export default function AuditManagerDashboard() {
                 <tr key={p.id} className="border-t hover:bg-gray-50">
                   <td className="px-5 py-3 font-medium">
                     {p.branch?.branch_name}
-                    <span className="text-xs text-gray-400 ml-1">
-                      ({p.branch?.branch_code})
-                    </span>
+                    <span className="text-xs text-gray-400 ml-1">({p.branch?.branch_code})</span>
                   </td>
                   <td className="px-5 py-3">{p.auditor?.full_name || '-'}</td>
                   <td className="px-5 py-3">{formatDate(p.planned_date)}</td>
@@ -129,9 +188,7 @@ export default function AuditManagerDashboard() {
                     {formatDate(p.period_from)} – {formatDate(p.period_to)}
                   </td>
                   <td className="px-5 py-3">
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[p.status] || 'bg-gray-100'}`}
-                    >
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[p.status] || 'bg-gray-100'}`}>
                       {p.status}
                     </span>
                   </td>
