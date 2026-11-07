@@ -1,0 +1,310 @@
+import React from 'react';
+import { Plus, Trash2 } from 'lucide-react';
+
+type Row = Record<string, string>;
+
+interface TableConfig {
+  key: string;
+  title: string;
+  columns: { key: string; label: string }[];
+}
+
+const TABLES: TableConfig[] = [
+  {
+    key: 'gl_release_token_missing',
+    title: 'a) Gold loan Release Token missing cases',
+    columns: [
+      { key: 'loan_date', label: 'Loan Date' },
+      { key: 'close_date', label: 'Close Date' },
+      { key: 'customer_name', label: 'Customer Name' },
+      { key: 'loan_no', label: 'Loan No.' },
+      { key: 'principle_amt', label: 'Principle Amt.' },
+    ],
+  },
+  {
+    key: 'gl_release_sign_mismatch',
+    title: 'b) Release sign mismatches cases',
+    columns: [
+      { key: 'loan_date', label: 'Loan Date' },
+      { key: 'close_date', label: 'Close Date' },
+      { key: 'customer_name', label: 'Customer Name' },
+      { key: 'loan_no', label: 'Loan No.' },
+      { key: 'principle_amt', label: 'Principle Amt.' },
+    ],
+  },
+  {
+    key: 'gl_release_sign_missing',
+    title: 'c) Release sign missing case',
+    columns: [
+      { key: 'loan_date', label: 'Loan Date' },
+      { key: 'close_date', label: 'Close Date' },
+      { key: 'customer_name', label: 'Customer Name' },
+      { key: 'loan_no', label: 'Loan No.' },
+      { key: 'principle_amt', label: 'Principle Amt.' },
+    ],
+  },
+  {
+    key: 'gl_declaration_missing',
+    title: 'd) Declaration form missing',
+    columns: [
+      { key: 'scheme', label: 'Scheme' },
+      { key: 'account_no', label: 'Account No' },
+      { key: 'name', label: 'Name' },
+      { key: 'open_date', label: 'Open Date' },
+      { key: 'amount', label: 'Amount' },
+    ],
+  },
+  {
+    key: 'gl_pledge_photo',
+    title: 'e) Pledge form – Customer live photo and ornament photos',
+    columns: [
+      { key: 'scheme', label: 'Scheme' },
+      { key: 'loan_no', label: 'Loan No' },
+      { key: 'loan_date', label: 'Loan Date' },
+      { key: 'customer_name', label: 'Customer Name' },
+      { key: 'loan_amount', label: 'Loan Amount' },
+    ],
+  },
+  {
+    key: 'gl_pledge_issues',
+    title: 'f) Pledge related issues',
+    columns: [
+      { key: 'account_no', label: 'Account No' },
+      { key: 'name', label: 'Name' },
+      { key: 'open_date', label: 'Open Date' },
+      { key: 'amount', label: 'Amount' },
+      { key: 'remarks', label: 'Remarks' },
+    ],
+  },
+  {
+    key: 'gl_released_docs',
+    title: 'g) Released documents related issues',
+    columns: [
+      { key: 'loan_date', label: 'Loan Date' },
+      { key: 'close_date', label: 'Close Date' },
+      { key: 'customer_name', label: 'Customer Name' },
+      { key: 'loan_no', label: 'Loan No.' },
+      { key: 'principle_amt', label: 'Principle Amt.' },
+      { key: 'remarks', label: 'Remarks' },
+    ],
+  },
+  {
+    key: 'gl_ctfs',
+    title: 'h) CTFS documents related issues',
+    columns: [
+      { key: 'deposit_no', label: 'Deposit No' },
+      { key: 'deposit_date', label: 'Deposit Date' },
+      { key: 'deposit_amount', label: 'Deposit Amount' },
+      { key: 'maturity_date', label: 'Maturity Date' },
+      { key: 'customer_name', label: 'Customer Name' },
+      { key: 'agent', label: 'Agent' },
+      { key: 'remarks', label: 'Remarks' },
+    ],
+  },
+  {
+    key: 'kyc_verification',
+    title: 'KYC Verification',
+    columns: [
+      { key: 'application_date', label: 'Application Date' },
+      { key: 'name', label: 'Name' },
+      { key: 'share_number', label: 'Share Number' },
+      { key: 'address', label: 'Address' },
+      { key: 'aadhar', label: 'Aadhar Number' },
+      { key: 'pan', label: 'Pan Number' },
+      { key: 'agent', label: 'Agent' },
+      { key: 'remarks', label: 'Remarks' },
+    ],
+  },
+];
+
+function emptyRow(columns: { key: string }[]): Row {
+  const row: Row = {};
+  columns.forEach((c) => { row[c.key] = ''; });
+  return row;
+}interface Props {
+  data: Record<string, Row[]>;
+  onChange: (key: string, rows: Row[]) => void;
+  hospitalNotes: string;
+  vouchersNotes: string;
+  pendingIrregularities: string;
+  onFieldChange: (field: string, value: string) => void;
+  readOnly?: boolean;
+}
+
+export default function Annexure1({
+  data,
+  onChange,
+  hospitalNotes,
+  vouchersNotes,
+  pendingIrregularities,
+  onFieldChange,
+  readOnly,
+}: Props) {
+  const addRow = (tableKey: string, columns: { key: string }[]) => {
+    const rows = [...(data[tableKey] || [])];
+    rows.push(emptyRow(columns));
+    onChange(tableKey, rows);
+  };
+
+  const removeRow = (tableKey: string, index: number) => {
+    const rows = (data[tableKey] || []).filter((_, i) => i !== index);
+    onChange(tableKey, rows);
+  };
+
+  const updateCell = (tableKey: string, index: number, colKey: string, value: string) => {
+    const rows = [...(data[tableKey] || [])];
+    rows[index] = { ...rows[index], [colKey]: value };
+    onChange(tableKey, rows);
+  };
+
+  return (
+    <div className="space-y-6">
+      <h3 className="text-base font-bold text-teal-800 border-b-2 border-teal-500 pb-1">
+        ANNEXURE 1 – DOCUMENTS VERIFICATION
+      </h3>
+
+      <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-sm font-semibold text-amber-900">
+        GOLD LOAN
+      </div>
+
+      {TABLES.filter((t) => t.key.startsWith('gl_')).map((table) => (
+        <div key={table.key} className="border rounded-lg overflow-hidden">
+          <div className="bg-slate-100 px-3 py-2 text-sm font-medium">{table.title}</div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50">
+                <tr>
+                  {table.columns.map((c) => (
+                    <th key={c.key} className="text-left px-2 py-1.5 font-medium whitespace-nowrap">{c.label}</th>
+                  ))}
+                  {!readOnly && <th className="w-10"></th>}
+                </tr>
+              </thead>
+              <tbody>
+                {(data[table.key] || []).map((row, i) => (
+                  <tr key={i} className="border-t">
+                    {table.columns.map((c) => (
+                      <td key={c.key} className="px-1 py-1">
+                        <input
+                          value={row[c.key] || ''}
+                          onChange={(e) => updateCell(table.key, i, c.key, e.target.value)}
+                          disabled={readOnly}
+                          className="w-full border rounded px-1.5 py-1 min-w-[90px]"
+                        />
+                      </td>
+                    ))}
+                    {!readOnly && (
+                      <td>
+                        <button type="button" onClick={() => removeRow(table.key, i)} className="text-red-500 p-1">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+                {(data[table.key] || []).length === 0 && (
+                  <tr>
+                    <td colSpan={table.columns.length + (readOnly ? 0 : 1)} className="px-3 py-3 text-gray-400 text-center text-xs">
+                      No rows. Click Add Row.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+          {!readOnly && (
+            <button
+              type="button"
+              onClick={() => addRow(table.key, table.columns)}
+              className="m-2 text-xs text-blue-600 flex items-center gap-1"
+            >
+              <Plus className="w-3.5 h-3.5" /> Add Row
+            </button>
+          )}
+        </div>
+      ))}
+
+      <div className="border rounded-lg p-3 space-y-2">
+        <div className="text-sm font-medium bg-teal-50 text-teal-900 px-2 py-1 rounded">HOSPITAL APPLICATION VERIFICATION</div>
+        <textarea
+          value={hospitalNotes}
+          onChange={(e) => onFieldChange('hospital_notes', e.target.value)}
+          disabled={readOnly}
+          rows={2}
+          className="w-full border rounded-lg px-3 py-2 text-sm"
+          placeholder="Notes / findings..."
+        />
+      </div>
+
+      {TABLES.filter((t) => t.key === 'kyc_verification').map((table) => (
+        <div key={table.key} className="border rounded-lg overflow-hidden">
+          <div className="bg-teal-50 px-3 py-2 text-sm font-medium text-teal-900">{table.title}</div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50">
+                <tr>
+                  {table.columns.map((c) => (
+                    <th key={c.key} className="text-left px-2 py-1.5 font-medium whitespace-nowrap">{c.label}</th>
+                  ))}
+                  {!readOnly && <th className="w-10"></th>}
+                </tr>
+              </thead>
+              <tbody>
+                {(data[table.key] || []).map((row, i) => (
+                  <tr key={i} className="border-t">
+                    {table.columns.map((c) => (
+                      <td key={c.key} className="px-1 py-1">
+                        <input
+                          value={row[c.key] || ''}
+                          onChange={(e) => updateCell(table.key, i, c.key, e.target.value)}
+                          disabled={readOnly}
+                          className="w-full border rounded px-1.5 py-1 min-w-[90px]"
+                        />
+                      </td>
+                    ))}
+                    {!readOnly && (
+                      <td>
+                        <button type="button" onClick={() => removeRow(table.key, i)} className="text-red-500 p-1">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {!readOnly && (
+            <button type="button" onClick={() => addRow(table.key, table.columns)} className="m-2 text-xs text-blue-600 flex items-center gap-1">
+              <Plus className="w-3.5 h-3.5" /> Add Row
+            </button>
+          )}
+        </div>
+      ))}
+
+      <div className="border rounded-lg p-3 space-y-2">
+        <div className="text-sm font-medium bg-teal-50 text-teal-900 px-2 py-1 rounded">VOUCHERS VERIFICATION</div>
+        <textarea
+          value={vouchersNotes}
+          onChange={(e) => onFieldChange('vouchers_notes', e.target.value)}
+          disabled={readOnly}
+          rows={2}
+          className="w-full border rounded-lg px-3 py-2 text-sm"
+          placeholder="Notes / findings..."
+        />
+      </div>
+
+      <div className="border rounded-lg p-3 space-y-2">
+        <div className="text-sm font-medium bg-teal-50 text-teal-900 px-2 py-1 rounded">PENDING IRREGULARITIES</div>
+        <textarea
+          value={pendingIrregularities}
+          onChange={(e) => onFieldChange('annex1_pending_irregularities', e.target.value)}
+          disabled={readOnly}
+          rows={3}
+          className="w-full border rounded-lg px-3 py-2 text-sm"
+          placeholder="List pending irregularities..."
+        />
+      </div>
+    </div>
+  );
+}
