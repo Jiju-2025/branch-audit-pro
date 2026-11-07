@@ -93,7 +93,11 @@ const defaultFormData = {
     registers: { max: 15, achieved: 0 },
     documentation: { max: 10, achieved: 0 },
     premises: { max: 5, achieved: 0 },
-  },
+    },
+    annex1: {} as Record<string, any[]>,
+  hospital_notes: '',
+  vouchers_notes: '',
+  annex1_pending_irregularities: '',
 };export default function AuditForm() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
@@ -496,46 +500,36 @@ const defaultFormData = {
         <textarea value={formData.general_observations} onChange={(e) => updateField('general_observations', e.target.value)} disabled={isReadOnly} rows={4} className="w-full border rounded-lg px-3 py-2" placeholder="Write any general observations..." />
       </Section>
 
-      <Section title="Annex – Documentation & Revenue Loss" defaultOpen={false}>
+      <Section title="Annexure 1 – Documents Verification" defaultOpen={false}>
+        <Annexure1
+          data={formData.annex1 || {}}
+          onChange={(key, rows) => {
+            setFormData((prev: any) => ({
+              ...prev,
+              annex1: { ...(prev.annex1 || {}), [key]: rows },
+            }));
+          }}
+          hospitalNotes={formData.hospital_notes || ''}
+          vouchersNotes={formData.vouchers_notes || ''}
+          pendingIrregularities={formData.annex1_pending_irregularities || ''}
+          onFieldChange={(field, value) => updateField(field, value)}
+          readOnly={isReadOnly}
+        />
+      </Section>
+
+      <Section title="Annex – Revenue Loss (notes)" defaultOpen={false}>
         <div className="grid grid-cols-2 gap-4 mb-4">
-          <div><label className="text-sm font-medium">Documents verified</label><input type="number" value={formData.docs_verified_count} onChange={(e) => updateField('docs_verified_count', e.target.value)} disabled={isReadOnly} className="w-full border rounded-lg px-3 py-2 mt-1" /></div>
-          <div><label className="text-sm font-medium">Discrepancies found</label><input type="number" value={formData.docs_discrepancies} onChange={(e) => updateField('docs_discrepancies', e.target.value)} disabled={isReadOnly} className="w-full border rounded-lg px-3 py-2 mt-1" /></div>
+          <div>
+            <label className="text-sm font-medium">Documents verified</label>
+            <input type="number" value={formData.docs_verified_count} onChange={(e) => updateField('docs_verified_count', e.target.value)} disabled={isReadOnly} className="w-full border rounded-lg px-3 py-2 mt-1" />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Discrepancies found</label>
+            <input type="number" value={formData.docs_discrepancies} onChange={(e) => updateField('docs_discrepancies', e.target.value)} disabled={isReadOnly} className="w-full border rounded-lg px-3 py-2 mt-1" />
+          </div>
         </div>
         <label className="text-sm font-medium">Revenue Loss / Gold Packet notes</label>
         <textarea value={formData.annex2_pending_irregularities} onChange={(e) => updateField('annex2_pending_irregularities', e.target.value)} disabled={isReadOnly} rows={3} className="w-full border rounded-lg px-3 py-2 mt-1" placeholder="Spurious cases, low purity, weight differences, etc." />
-      </Section>
-
-      <Section title="Grading" defaultOpen={false}>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50"><tr><th className="text-left px-3 py-2">Parameter</th><th className="text-left px-3 py-2">Max</th><th className="text-left px-3 py-2">Achieved</th></tr></thead>
-            <tbody>
-              {[
-                { key: 'cash_maintenance', label: 'Cash Maintenance' },
-                { key: 'bank_brs', label: 'Bank Balance / BRS' },
-                { key: 'registers', label: 'Registers / Files' },
-                { key: 'documentation', label: 'Documentation' },
-                { key: 'premises', label: 'Branch Premises' },
-              ].map(item => (
-                <tr key={item.key} className="border-t">
-                  <td className="px-3 py-2">{item.label}</td>
-                  <td className="px-3 py-2 text-gray-500">{formData.grading?.[item.key]?.max ?? 0}</td>
-                  <td className="px-3 py-2">
-                    <input type="number" value={formData.grading?.[item.key]?.achieved ?? 0}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        setFormData((prev: any) => ({
-                          ...prev,
-                          grading: { ...prev.grading, [item.key]: { ...prev.grading[item.key], achieved: val } },
-                        }));
-                      }}
-                      disabled={isReadOnly} className="w-24 border rounded px-2 py-1" />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </Section>
 
       {!isReadOnly && (
