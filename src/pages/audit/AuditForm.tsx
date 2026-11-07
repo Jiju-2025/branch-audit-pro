@@ -3,7 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { databases, DATABASE_ID, COLLECTIONS, ID } from '../../lib/appwrite';
 import { useAuth } from '../../context/AuthContext';
 import { Save, Send, ArrowLeft, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
-
+import Annexure1 from './Annexure1';
 const DESIGNATIONS = [
   'Customer Relation Executive',
   'Assistant Manager',
