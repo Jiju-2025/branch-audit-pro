@@ -94,7 +94,7 @@ const defaultFormData = {
     documentation: { max: 10, achieved: 0 },
     premises: { max: 5, achieved: 0 },
     },
-    annex1: {} as Record<string, any[]>,
+    './Annexure1.tsx'; {} as Record<string, any[]>,
   hospital_notes: '',
   vouchers_notes: '',
   annex1_pending_irregularities: '',
