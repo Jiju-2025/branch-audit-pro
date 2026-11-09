@@ -3,8 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { databases, DATABASE_ID, COLLECTIONS } from '../../lib/appwrite';
 import { Printer, ArrowLeft } from 'lucide-react';
 
-const COMPANY_NAME = 'YOUR COMPANY NAME';
-const COMPANY_ADDRESS = 'Registered Office Address, City, State - PIN';
+const COMPANY_NAME = 'UNIBHARATH CORP KISSAN PRODUCER COMPANY';
+const COMPANY_ADDRESS = 'TM PROPERTIES ,ACHUTHAMENON ROAD,PUNKUNNAM,THRISSUR';
 
 export default function ReportPrint() {
   const { id } = useParams();
