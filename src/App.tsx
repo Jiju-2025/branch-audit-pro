@@ -11,6 +11,7 @@ import Branches from './pages/Branches';
 import Users from './pages/Users';
 import AuditForm from './pages/audit/AuditForm';
 import BranchReply from './pages/BranchReply';
+import ReportPrint from './pages/audit/ReportPrint.tsx';
 
 function HomeRedirect() {
   const { profile } = useAuth();
@@ -22,7 +23,6 @@ function HomeRedirect() {
   if (profile.role === 'audit_manager' || profile.role === 'admin') {
     return <AuditManagerDashboard />;
   }
-  // Branch managers and higher roles - simple welcome for now
   return (
     <div className="bg-white rounded-xl border p-8">
       <h1 className="text-xl font-bold text-gray-800 mb-2">
@@ -42,6 +42,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/reports/:id/print" element={<ReportPrint />} />
       <Route
         path="/change-password"
         element={
