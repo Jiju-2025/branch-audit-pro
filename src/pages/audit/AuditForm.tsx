@@ -544,19 +544,29 @@ export default function AuditForm() {
         />
       </Section>
 
-      <Section title="Annex – Revenue Loss (notes)" defaultOpen={false}>
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <label className="text-sm font-medium">Documents verified</label>
-            <input type="number" value={formData.docs_verified_count} onChange={(e) => updateField('docs_verified_count', e.target.value)} disabled={isReadOnly} className="w-full border rounded-lg px-3 py-2 mt-1" />
-          </div>
-          <div>
-            <label className="text-sm font-medium">Discrepancies found</label>
-            <input type="number" value={formData.docs_discrepancies} onChange={(e) => updateField('docs_discrepancies', e.target.value)} disabled={isReadOnly} className="w-full border rounded-lg px-3 py-2 mt-1" />
-          </div>
-        </div>
-        <label className="text-sm font-medium">Revenue Loss / Gold Packet notes</label>
-        <textarea value={formData.annex2_pending_irregularities} onChange={(e) => updateField('annex2_pending_irregularities', e.target.value)} disabled={isReadOnly} rows={3} className="w-full border rounded-lg px-3 py-2 mt-1" placeholder="Spurious cases, low purity, weight differences, etc." />
+      <Section title="Annexure 2 – Revenue Loss" defaultOpen={false}>
+        <Annexure2
+          header={formData.annex2_header || {}}
+          data={formData.annex2 || {}}
+          onHeaderChange={(field, value) => {
+            setFormData((prev: any) => ({
+              ...prev,
+              annex2_header: { ...(prev.annex2_header || {}), [field]: value },
+            }));
+          }}
+          onChange={(key, rows) => {
+            setFormData((prev: any) => ({
+              ...prev,
+              annex2: { ...(prev.annex2 || {}), [key]: rows },
+            }));
+          }}
+          generalPoints={formData.annex2_general_points || ''}
+          pendingIrregularities={formData.annex2_pending_irregularities || ''}
+          closedIrregularities={formData.annex2_closed_irregularities || ''}
+          totalRecovery={formData.annex2_total_recovery || ''}
+          onFieldChange={(field, value) => updateField(field, value)}
+          readOnly={isReadOnly}
+        />
       </Section>
 
       <Section title="Grading" defaultOpen={false}>
