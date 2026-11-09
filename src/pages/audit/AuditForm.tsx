@@ -4,7 +4,7 @@ import { databases, DATABASE_ID, COLLECTIONS, ID } from '../../lib/appwrite';
 import { useAuth } from '../../context/AuthContext';
 import { Save, Send, ArrowLeft, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import Annexure1 from './Annexure1.tsx';
-
+import Annexure2 from './Annexure2.tsx';
 const DESIGNATIONS = [
   'Customer Relation Executive',
   'Assistant Manager',
