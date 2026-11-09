@@ -110,6 +110,11 @@ const defaultFormData = {
   hospital_notes: '',
   vouchers_notes: '',
   annex1_pending_irregularities: '',
+  annex2: {} as Record<string, any[]>,
+  annex2_header: {} as Record<string, string>,
+  annex2_general_points: '',
+  annex2_closed_irregularities: '',
+  annex2_total_recovery: '',
 };
 export default function AuditForm() {
   const { id } = useParams();
