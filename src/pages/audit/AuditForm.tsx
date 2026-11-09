@@ -294,6 +294,16 @@ export default function AuditForm() {
             <p className="text-xs text-gray-500">
               Status: <span className="font-medium">{status}</span>
             </p>
+                    {isReadOnly && id && (
+          <a
+            href={`/reports/${id}/print`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+          >
+            Print / PDF
+          </a>
+        )}
           </div>
         </div>
         {!isReadOnly && (
