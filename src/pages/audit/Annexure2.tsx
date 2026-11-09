@@ -326,7 +326,7 @@ export default function Annexure2({
         </div>
         <div>
           <label className="text-xs font-medium text-gray-600">Number of packets verified</label>
-          <input value={header.packets_verified || '20'} onChange={(e) => onHeaderChange('packets_verified', e.target.value)} disabled={readOnly} className="w-full border rounded-lg px-3 py-2 text-sm" />
+         <input value={header.packets_verified || ''} onChange={(e) => onHeaderChange('packets_verified', e.target.value)} disabled={readOnly} className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Enter number" />
         </div>
         <div>
           <label className="text-xs font-medium text-gray-600">Period covered From</label>
@@ -396,7 +396,7 @@ export default function Annexure2({
       <div className="border-2 border-slate-300 rounded-lg p-4 text-sm text-center text-gray-700 bg-slate-50">
         <p className="font-medium">AUDIT COMPLETION REPORT</p>
         <p className="mt-2 text-xs">
-          THIS IS TO CERTIFY THAT A TOTAL NUMBER OF ({header.packets_verified || '20'}) GL PACKETS WERE RECEIVED FOR VERIFICATION
+          THIS IS TO CERTIFY THAT A TOTAL NUMBER OF ({header.packets_verified || '___'}) GL PACKETS WERE RECEIVED FOR VERIFICATION
           AND VERIFIED AND RETURNED THE SAME NUMBER OF PACKETS TO THE AUTHORISED STAFF WITHOUT ANY SHORTAGE OR DAMAGE.
           A COPY OF THIS REPORT HAS BEEN HANDED OVER TO BRANCH MANAGER. THE IRREGULARITIES HAVE BEEN DISCUSSED WITH THE BRANCH MANAGER AND STAFF.
         </p>
