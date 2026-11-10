@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Save, Send, ArrowLeft, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import Annexure1 from './Annexure1.tsx';
 import Annexure2 from './Annexure2.tsx';
+
 const DESIGNATIONS = [
   'Customer Relation Executive',
   'Assistant Manager',
@@ -131,6 +132,7 @@ export default function AuditForm() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(!!id);
+  const [remarks, setRemarks] = useState<any[]>([]);
 
   useEffect(() => {
     loadBranches();
@@ -178,6 +180,27 @@ export default function AuditForm() {
           ? 'submitted'
           : 'draft'
       );
+
+      try {
+        const remRes = await databases.listDocuments(DATABASE_ID, COLLECTIONS.report_remarks);
+        const profileRes = await databases.listDocuments(DATABASE_ID, COLLECTIONS.profiles);
+        const profileMap: Record<string, any> = {};
+        profileRes.documents.forEach((p: any) => {
+          profileMap[p.$id] = p;
+        });
+        setRemarks(
+          remRes.documents
+            .filter((r: any) => r.report_id === reportId)
+            .map((r: any) => ({
+              ...r,
+              user: profileMap[r.user_id],
+            }))
+            .sort((a: any, b: any) => (a.$createdAt || '').localeCompare(b.$createdAt || ''))
+        );
+      } catch (e) {
+        console.error(e);
+        setRemarks([]);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -294,28 +317,30 @@ export default function AuditForm() {
             <p className="text-xs text-gray-500">
               Status: <span className="font-medium">{status}</span>
             </p>
-                    {isReadOnly && id && (
-          <a
-            href={`/reports/${id}/print`}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-          >
-            Print / PDF
-          </a>
-        )}
           </div>
         </div>
-        {!isReadOnly && (
-          <div className="flex gap-2">
-            <button onClick={() => saveReport(false)} disabled={saving} className="inline-flex items-center gap-2 bg-white border px-4 py-2 rounded-lg text-sm font-medium">
-              <Save className="w-4 h-4" /> Save Draft
-            </button>
-            <button onClick={() => saveReport(true)} disabled={saving} className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
-              <Send className="w-4 h-4" /> Submit Report
-            </button>
-          </div>
-        )}
+        <div className="flex gap-2">
+          {isReadOnly && id && (
+            <a
+              href={`/reports/${id}/print`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+            >
+              Print / PDF
+            </a>
+          )}
+          {!isReadOnly && (
+            <>
+              <button onClick={() => saveReport(false)} disabled={saving} className="inline-flex items-center gap-2 bg-white border px-4 py-2 rounded-lg text-sm font-medium">
+                <Save className="w-4 h-4" /> Save Draft
+              </button>
+              <button onClick={() => saveReport(true)} disabled={saving} className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                <Send className="w-4 h-4" /> Submit Report
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {message && (
@@ -630,6 +655,35 @@ export default function AuditForm() {
         </div>
       </Section>
 
+      <Section title="Branch / Management Remarks" defaultOpen={true}>
+        {remarks.length === 0 ? (
+          <p className="text-sm text-gray-400">No remarks or branch reply yet.</p>
+        ) : (
+          <div className="space-y-3">
+            {remarks.map((r: any) => (
+              <div key={r.$id || r.id} className="border rounded-lg p-3 bg-slate-50">
+                <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mb-1">
+                  <span className="font-semibold text-gray-800">{r.user?.full_name || 'User'}</span>
+                  <span className="uppercase bg-gray-200 px-1.5 py-0.5 rounded">{(r.role || '').replace('_', ' ')}</span>
+                  <span>{r.$createdAt ? new Date(r.$createdAt).toLocaleString() : ''}</span>
+                </div>
+                <p className="text-sm text-gray-800 whitespace-pre-wrap">{r.remark_text}</p>
+                {r.action_taken && (
+                  <p className="text-sm text-teal-800 mt-1">
+                    <strong>Action taken:</strong> {r.action_taken}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        {status === 'submitted' && id && (
+          <a href={`/reports/${id}/reply`} className="inline-block mt-3 text-sm text-teal-600 hover:underline">
+            Open reply page →
+          </a>
+        )}
+      </Section>
+
       {!isReadOnly && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-3 flex justify-end gap-3 z-20">
           <button onClick={() => saveReport(false)} disabled={saving} className="inline-flex items-center gap-2 bg-white border px-5 py-2.5 rounded-lg text-sm font-medium">
@@ -643,3 +697,5 @@ export default function AuditForm() {
     </div>
   );
 }
+
+
