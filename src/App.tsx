@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import ChangePassword from './pages/ChangePassword';
 import AuditorDashboard from './pages/AuditorDashboard';
 import AuditManagerDashboard from './pages/AuditManagerDashboard';
+import BranchDashboard from './pages/BranchDashboard';
 import CreateProgram from './pages/CreateProgram';
 import Branches from './pages/Branches';
 import Users from './pages/Users';
@@ -23,16 +24,18 @@ function HomeRedirect() {
   if (profile.role === 'audit_manager' || profile.role === 'admin') {
     return <AuditManagerDashboard />;
   }
+  if (
+    ['branch_manager', 'area_manager', 'regional_manager', 'sales_head', 'director'].includes(
+      profile.role
+    )
+  ) {
+    return <BranchDashboard />;
+  }
   return (
     <div className="bg-white rounded-xl border p-8">
-      <h1 className="text-xl font-bold text-gray-800 mb-2">
-        Welcome, {profile.full_name}
-      </h1>
+      <h1 className="text-xl font-bold text-gray-800 mb-2">Welcome, {profile.full_name}</h1>
       <p className="text-gray-500 mb-4">
         Role: <strong>{profile.role.replace('_', ' ')}</strong>
-      </p>
-      <p className="text-sm text-gray-600">
-        Use the menu to view reports assigned to you and submit replies.
       </p>
     </div>
   );
@@ -66,6 +69,8 @@ function AppRoutes() {
         <Route path="users" element={<Users />} />
         <Route path="my-audits/new" element={<AuditForm />} />
         <Route path="my-audits/:id" element={<AuditForm />} />
+        <Route path="reports" element={<BranchDashboard />} />
+        <Route path="pending-replies" element={<BranchDashboard />} />
         <Route path="reports/:id/reply" element={<BranchReply />} />
       </Route>
 
