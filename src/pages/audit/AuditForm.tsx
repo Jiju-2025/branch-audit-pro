@@ -140,11 +140,49 @@ export default function AuditForm() {
   }, [id]);
 
   const loadBranches = async () => {
-          try {
-        const remRes = await databases.listDocuments(
-          DATABASE_ID,
-          COLLECTIONS.report_remarks
-        );
+    try {
+      const res = await databases.listDocuments(DATABASE_ID, COLLECTIONS.branches);
+      setBranches(res.documents.map((d: any) => ({ id: d.$id, branch_code: d.branch_code, branch_name: d.branch_name })));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const calcManDays = (from: string, to: string) => {
+    if (!from || !to) return '';
+    const d1 = new Date(from);
+    const d2 = new Date(to);
+    if (isNaN(d1.getTime()) || isNaN(d2.getTime()) || d2 < d1) return '';
+    const days = Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    return String(days);
+  };
+
+  const onVerificationChange = (field: 'verification_from' | 'verification_to', value: string) => {
+    setFormData((prev: any) => {
+      const next = { ...prev, [field]: value };
+      const from = field === 'verification_from' ? value : prev.verification_from;
+      const to = field === 'verification_to' ? value : prev.verification_to;
+      next.man_days_taken = calcManDays(from, to);
+      return next;
+    });
+  };
+
+  const loadReport = async (reportId: string) => {
+    setLoading(true);
+    try {
+      const doc = await databases.getDocument(DATABASE_ID, COLLECTIONS.audit_reports, reportId);
+      setBranchId(doc.branch_id);
+      setAuditDate(doc.audit_date || '');
+      const parsed = typeof doc.form_data === 'string' ? JSON.parse(doc.form_data) : doc.form_data || {};
+      setFormData({ ...defaultFormData, ...parsed });
+      setStatus(
+        doc.status === 'submitted' || doc.status === 'branch_replied' || doc.status === 'closed'
+          ? 'submitted'
+          : 'draft'
+      );
+
+      try {
+        const remRes = await databases.listDocuments(DATABASE_ID, COLLECTIONS.report_remarks);
         console.log('ALL REMARKS COUNT', remRes.documents.length);
         console.log('ALL REMARKS', remRes.documents);
         console.log('LOOKING FOR reportId', reportId);
@@ -315,7 +353,7 @@ export default function AuditForm() {
       </div>
 
       {message && (
-        <div className={`px-4 py-3 rounded-lg text-sm ${message.startsWith('Error') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}
+        <div className={`px-4 py-3 rounded-lg text-sm ${message.startsWith('Error') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
           {message}
         </div>
       )}
@@ -668,5 +706,3 @@ export default function AuditForm() {
     </div>
   );
 }
-
-
