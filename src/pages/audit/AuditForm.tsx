@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { databases, DATABASE_ID, COLLECTIONS, ID } from '../../lib/appwrite';
+import { databases, DATABASE_ID, COLLECTIONS, ID, Query } from '../../lib/appwrite';
 import { useAuth } from '../../context/AuthContext';
 import { Save, Send, ArrowLeft, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import Annexure1 from './Annexure1.tsx';
@@ -181,8 +181,12 @@ export default function AuditForm() {
           : 'draft'
       );
 
-      try {
-        const remRes = await databases.listDocuments(DATABASE_ID, COLLECTIONS.report_remarks);
+           try {
+        const remRes = await databases.listDocuments(
+          DATABASE_ID,
+          COLLECTIONS.report_remarks,
+          [Query.equal('report_id', reportId)]
+        );
         const profileRes = await databases.listDocuments(DATABASE_ID, COLLECTIONS.profiles);
         const profileMap: Record<string, any> = {};
         profileRes.documents.forEach((p: any) => {
@@ -190,7 +194,6 @@ export default function AuditForm() {
         });
         setRemarks(
           remRes.documents
-            .filter((r: any) => r.report_id === reportId)
             .map((r: any) => ({
               ...r,
               user: profileMap[r.user_id],
