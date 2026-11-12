@@ -193,12 +193,19 @@ export default function AuditForm() {
           profileMap[p.$id] = p;
         });
 
-        console.log('FIRST REMARK KEYS', remRes.documents[0] ? Object.keys(remRes.documents[0]) : []);
-        console.log('FIRST REMARK FULL', remRes.documents[0]);
         console.log('LOOKING FOR reportId', reportId);
+        remRes.documents.forEach((r: any) => {
+          console.log('REMARK report_id=', r.report_id, 'equal?', String(r.report_id).trim() === String(reportId).trim());
+        });
+
+        const matched = remRes.documents.filter((r: any) => {
+          return String(r.report_id || '').trim() === String(reportId || '').trim();
+        });
+
+        console.log('MATCHED', matched.length);
 
         setRemarks(
-          remRes.documents.map((r: any) => ({
+          matched.map((r: any) => ({
             ...r,
             user: profileMap[r.user_id],
           }))
