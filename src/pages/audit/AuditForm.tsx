@@ -193,15 +193,12 @@ export default function AuditForm() {
           profileMap[p.$id] = p;
         });
 
-        const matched = remRes.documents.filter((r: any) => {
-          const rid = String(r.report_id || r.reportId || '');
-          return rid === String(reportId) || rid.includes(String(reportId)) || String(reportId).includes(rid);
-        });
-
-        console.log('MATCHED', matched.length, matched);
+        console.log('FIRST REMARK KEYS', remRes.documents[0] ? Object.keys(remRes.documents[0]) : []);
+        console.log('FIRST REMARK FULL', remRes.documents[0]);
+        console.log('LOOKING FOR reportId', reportId);
 
         setRemarks(
-          matched.map((r: any) => ({
+          remRes.documents.map((r: any) => ({
             ...r,
             user: profileMap[r.user_id],
           }))
