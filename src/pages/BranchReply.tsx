@@ -64,13 +64,12 @@ export default function BranchReply() {
 
     try {
       await databases.createDocument(DATABASE_ID, COLLECTIONS.report_remarks, ID.unique(), {
-        report_id: report.id,
-        user_id: profile.id,
-        role: profile.role,
-        remark_text: replyText,
-        action_taken: actionTaken || null,
-      });
-
+  report_id: id,   // use the URL report id — this is the correct one
+  user_id: profile.id,
+  role: profile.role,
+  remark_text: replyText,
+  action_taken: actionTaken || '',
+});
       await databases.updateDocument(DATABASE_ID, COLLECTIONS.audit_reports, report.id, {
         status: 'branch_replied',
         branch_replied_at: new Date().toISOString(),
@@ -100,7 +99,15 @@ export default function BranchReply() {
 
   const days = daysRemaining(report.branch_reply_deadline);
   const isOverdue = days !== null && days < 0;
-  const canReply = profile?.role === 'branch_manager' || profile?.role === 'admin';
+  const const canReply = [
+  'branch_manager',
+  'area_manager',
+  'regional_manager',
+  'sales_head',
+  'director',
+  'admin',
+  'audit_manager',
+].includes(profile?.role || '');
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
