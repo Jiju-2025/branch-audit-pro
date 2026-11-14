@@ -99,7 +99,7 @@ export default function BranchReply() {
 
   const days = daysRemaining(report.branch_reply_deadline);
   const isOverdue = days !== null && days < 0;
-  const const canReply = [
+  const canReply = [
   'branch_manager',
   'area_manager',
   'regional_manager',
